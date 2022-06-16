@@ -7,14 +7,14 @@ import 'package:kali/assets/widgets.dart';
 
 class DisplayPost extends StatelessWidget {
   final PostPreview post;
-  final bool inTop10;
+  final bool inTop4;
   final void Function()? onRemove;
 
   const DisplayPost(this.post, {super.key})
       : onRemove = null,
-        inTop10 = false;
+        inTop4 = false;
 
-  const DisplayPost.top10(this.post, {required this.onRemove, super.key}) : inTop10 = true;
+  const DisplayPost.top4(this.post, {required this.onRemove, super.key}) : inTop4 = true;
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +78,7 @@ class DisplayPost extends StatelessWidget {
                                 alignLeft: true,
                               ),
                             ),
-                    if (inTop10) const Buffer(2.25)
+                    if (inTop4) const Buffer(2.25)
                   ],
                 ),
               ),
@@ -99,7 +99,7 @@ class DisplayPost extends StatelessWidget {
                   ? BorderRadius.only(
                       topLeft: Radius.circular(buffer),
                       bottomLeft:
-                          post.body.isEmpty && !inTop10 ? Radius.circular(buffer) : Radius.zero,
+                          post.body.isEmpty && !inTop4 ? Radius.circular(buffer) : Radius.zero,
                     )
                   : BorderRadius.all(Radius.circular(buffer)),
             ),
@@ -124,12 +124,12 @@ class DisplayPost extends StatelessWidget {
           curve: animationCurve,
           margin: EdgeInsets.only(top: post.expanded ? buffer * 5 : postHeight),
           color: Colors.black.withAlpha(
-            inTop10 || post.expanded && post.body.isNotEmpty ? 255 : 0,
+            inTop4 || post.expanded && post.body.isNotEmpty ? 255 : 0,
           ),
           width: buffer * 28,
           height: 0.5,
         ),
-        if (inTop10)
+        if (inTop4)
           Positioned.fill(
             child: Align(
               alignment: Alignment.bottomCenter,
@@ -173,10 +173,10 @@ class DisplayPost extends StatelessWidget {
   }
 }
 
-class Top10 extends StatelessWidget {
+class Top4 extends StatelessWidget {
   final Post? post;
 
-  const Top10({this.post, super.key});
+  const Top4({this.post, super.key});
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -216,7 +216,7 @@ class _CurationState extends State<Curation> {
 
   void reorder(oldIndex, newIndex) {
     if (newIndex > oldIndex) newIndex--;
-    setState(() => Data.top10.insert(newIndex, Data.top10.removeAt(oldIndex)));
+    setState(() => Data.top4.insert(newIndex, Data.top4.removeAt(oldIndex)));
   }
 
   @override
@@ -238,10 +238,10 @@ class _CurationState extends State<Curation> {
                       child: Dismissible(
                         direction: DismissDirection.startToEnd,
                         key: Key(post.title),
-                        confirmDismiss: (direction) async => Data.top10.length < 10,
+                        confirmDismiss: (direction) async => Data.top4.length < 4,
                         onDismissed: (direction) {
                           Data.postsToday.removeWhere((element) => element == post);
-                          setState(() => Data.top10.add(post));
+                          setState(() => Data.top4.add(post));
                         },
                         child: Padding(
                           padding: EdgeInsets.fromLTRB(
@@ -262,7 +262,7 @@ class _CurationState extends State<Curation> {
           AnimatedSize(
             duration: animationDuration,
             curve: animationCurve,
-            child: Data.top10.length == 10
+            child: Data.top4.length == 4
                 ? Padding(
                     padding: EdgeInsets.only(bottom: buffer * 2),
                     child: ColorButton(
@@ -283,7 +283,7 @@ class _CurationState extends State<Curation> {
           ReorderableList(
             shrinkWrap: true,
             itemBuilder: (context, index) {
-              final PostPreview post = Data.top10[index];
+              final PostPreview post = Data.top4[index];
               return ReorderableDragStartListener(
                 key: ValueKey(post.title),
                 // maybe switch this widget to delayed listener
@@ -295,13 +295,13 @@ class _CurationState extends State<Curation> {
                         context: context,
                         builder: (BuildContext context) {
                           return Center(
-                              child: DisplayPost.top10(
+                              child: DisplayPost.top4(
                             post,
                             onRemove: () {
                               Navigator.pop(context);
                               post.expanded = false;
                               setState(() {
-                                Data.top10.remove(post);
+                                Data.top4.remove(post);
                                 Data.postsToday.insert(0, post);
                               });
                             },
@@ -309,13 +309,13 @@ class _CurationState extends State<Curation> {
                         },
                       );
                     },
-                    child: Top10(post: post)),
+                    child: Top4(post: post)),
               );
             },
-            itemCount: Data.top10.length,
+            itemCount: Data.top4.length,
             onReorder: reorder,
           ),
-          for (int i = 0; i < 10 - Data.top10.length; i++) const Top10(),
+          for (int i = 0; i < 4 - Data.top4.length; i++) const Top4(),
           filler,
         ],
       ),

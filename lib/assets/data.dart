@@ -390,7 +390,7 @@ abstract class Data {
 
   /// a [List] containing today's posts.
   static List<PostPreview> postsToday = [];
-  static List<PostPreview> top10 = [];
+  static List<PostPreview> top4 = [];
 
   static void collapseAllPosts(Function setState) {
     for (int i = 0; i < postsToday.length; i++) {
