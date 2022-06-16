@@ -25,12 +25,6 @@ abstract class _CompanyName {
     'twitch',
   ];
   static const List<String> _spicyWords = [
-    'onlyfans',
-    'only fans',
-    'xvideos',
-    'x videos',
-    'bangbros',
-    'bang bros',
     'porn',
     'penis',
     'dick',
@@ -38,7 +32,7 @@ abstract class _CompanyName {
     'vagin',
     'cunt',
     'tits',
-    'titties',
+    'titt',
     'boob',
     'nigg',
     'fag',
@@ -47,9 +41,10 @@ abstract class _CompanyName {
     'fuck',
     'damn',
     'jesus',
+    'shrek',
   ];
   static String name = '';
-  static bool get _tooManyChars => name.length > 25;
+  static bool get _tooManyChars => name.length > maxCompanyNameLength;
   static bool get _copyrightStrike => inList(_companies);
   static bool get _spicy => inList(_spicyWords);
   static bool inList(List<String> list) {

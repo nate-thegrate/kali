@@ -31,6 +31,9 @@ const Duration animationDuration = Duration(milliseconds: 250);
 /// `easeOutCubic` is the best.
 const Curve animationCurve = Curves.easeOutCubic;
 
+/// so we don't overflow any text boxes.
+const int maxCompanyNameLength = 25;
+
 /// returns [dirty] or [clean] based on whether adult language is enabled.
 dynamic fuck(dynamic dirty, dynamic clean) => Data.adultLanguage ? dirty : clean;
 
