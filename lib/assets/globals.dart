@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kali/assets/data.dart';
 import 'dart:math';
 
 import 'package:kali/assets/structs.dart';
@@ -29,6 +30,9 @@ const Duration animationDuration = Duration(milliseconds: 250);
 
 /// `easeOutCubic` is the best.
 const Curve animationCurve = Curves.easeOutCubic;
+
+/// returns [dirty] or [clean] based on whether adult language is enabled.
+dynamic fuck(dynamic dirty, dynamic clean) => Data.adultLanguage ? dirty : clean;
 
 /// ```dart
 ///

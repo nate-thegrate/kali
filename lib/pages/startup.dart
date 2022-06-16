@@ -76,7 +76,7 @@ abstract class _CompanyName {
                 ? 'Magentle'
                 : 'Preddict',
         rng.nextBool() ? 'WeTube' : 'expoFeed',
-        Data.fuck('shitfuck', 'poop'),
+        fuck('shitfuck', 'poop'),
         _shuffle('asdfjkl;'),
       ];
   static void next() {
@@ -153,7 +153,7 @@ class _StartupState extends State<Startup> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const KaliText(
-                  'Hit this button if\nyou\'re at least 18 years old.',
+                  'Hit this button if you\'re\nat least 18 years old.',
                   white: true,
                 ),
                 const Buffer(2),
@@ -233,7 +233,7 @@ class _StartupState extends State<Startup> {
           ),
           const Buffer(.5),
           SizedBox(
-            height: max(context.buffer * 14 + 110, 290),
+            height: max(context.buffer * 14 + 111, 290),
             child: LightBox(
               child: Column(
                 children: [
@@ -291,7 +291,7 @@ class _StartupState extends State<Startup> {
                     child: SizedBox(
                       width: double.infinity,
                       child: KaliText(
-                        'Adult Language: ' + Data.fuck('fuck yeah', 'off'),
+                        'Adult Language: ' + fuck('fuck yeah', 'off'),
                         alignLeft: true,
                       ),
                     ),

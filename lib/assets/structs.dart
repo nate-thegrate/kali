@@ -18,6 +18,8 @@ abstract class DataPreset {
     Settings.colorH: 0.0,
     Settings.colorS: 0.0,
     Settings.colorL: 0.0,
+    Settings.postQueue: <String>{},
+    Settings.convoQueue: <String>{},
     Settings.upgradesOwned: <String>{},
     Settings.upgradesAvailable: <String>{},
     Settings.upgradesHidden: <String>{},
@@ -33,6 +35,8 @@ abstract class DataPreset {
     Settings.colorH: rng.nextDouble() * 360,
     Settings.colorS: rng.nextDouble(),
     Settings.colorL: rng.nextDouble(),
+    Settings.postQueue: <String>{},
+    Settings.convoQueue: <String>{},
     Settings.upgradesOwned: <String>{},
     Settings.upgradesAvailable: <String>{},
     Settings.upgradesHidden: <String>{},
@@ -48,6 +52,8 @@ abstract class DataPreset {
     Settings.colorH: rng.nextDouble() * 360,
     Settings.colorS: rng.nextDouble(),
     Settings.colorL: rng.nextDouble(),
+    Settings.postQueue: <String>{},
+    Settings.convoQueue: <String>{},
     Settings.upgradesOwned: <String>{},
     Settings.upgradesAvailable: <String>{},
     Settings.upgradesHidden: <String>{},
@@ -63,6 +69,8 @@ abstract class DataPreset {
     Settings.colorH: rng.nextDouble() * 360,
     Settings.colorS: rng.nextDouble(),
     Settings.colorL: rng.nextDouble(),
+    Settings.postQueue: <String>{},
+    Settings.convoQueue: <String>{},
     Settings.upgradesOwned: <String>{},
     Settings.upgradesAvailable: <String>{},
     Settings.upgradesHidden: <String>{},
@@ -79,6 +87,8 @@ enum Settings {
   colorH,
   colorS,
   colorL,
+  postQueue,
+  convoQueue,
   upgradesOwned,
   upgradesAvailable,
   upgradesHidden,
@@ -86,10 +96,10 @@ enum Settings {
 }
 
 enum Pages {
-  startup,
   convos,
-  terminal,
   curation,
+  startup,
+  terminal,
   upgrades,
   ;
 
@@ -234,6 +244,8 @@ class Dialogue {
   const Dialogue(this.user, this.body, {this.emote, this.event});
 }
 
+typedef Convo = List<Dialogue>;
+
 /// now I don't have to write out this list every time.
 ///
 /// Conveniently, you can insert this into a [List] using an ellipsis `...`.
@@ -261,7 +273,7 @@ class Registration extends Event {
 }
 
 /// the [String] goes in the button; the [List] is the conversation that happens when you tap it.
-typedef Response = Map<String, List<Dialogue>>;
+typedef Response = Map<String, Convo>;
 
 class Question extends Event {
   final Response options;

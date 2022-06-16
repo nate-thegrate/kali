@@ -108,7 +108,7 @@ class FancyStats {
 
   String get time {
     final DateTime now = DateTime.now();
-    List<String> goodFormat = [
+    final List<String> goodFormat = [
       for (final int val in [now.hour, now.minute, now.second]) '${val < 10 ? '0' : ''}$val'
     ];
 
@@ -279,9 +279,9 @@ class _ConvoScreenState extends State<ConvoScreen> {
   //   tick();
   // }
 
-  void Function() respond(List<Dialogue> response) => () {
+  void Function() respond(Convo response) => () {
         dialogue = const Dialogue.none(); // so we don't re-trigger the question
-        final List<Dialogue> subsequent = Data.dialogueToday
+        final Convo subsequent = Data.dialogueToday
             .sublist(Data.line + 1); // everything after the question in dialogueToday
         Data.dialogueToday = response + subsequent;
         Data.line = -1;

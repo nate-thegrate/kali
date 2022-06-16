@@ -128,7 +128,7 @@ abstract class Data {
   /// a list of all the major decisions the player has made.
   ///
   /// Exclusively contains the names of [Choices] elements.
-  static List<String> get choices => _settings[Settings.choices];
+  static Set<String> get choices => _settings[Settings.choices];
 
   /// used during startup
   /// when the player decides whether to enable adult language.
@@ -136,22 +136,14 @@ abstract class Data {
   /// The [fuck] function is used everywhere else.
   static bool get adultLanguage => Choices.profanity.wasChosen;
 
-  static set adultLanguage(bool fuck) {
-    if (fuck) {
-      if (!adultLanguage) choices.add(Choices.profanity());
-    } else {
-      if (adultLanguage) choices.remove(Choices.profanity());
-    }
-  }
-
-  /// returns [dirty] or [clean] based on whether adult language is enabled.
-  static dynamic fuck(dynamic dirty, dynamic clean) => adultLanguage ? dirty : clean;
+  static set adultLanguage(bool fuck) =>
+      fuck ? choices.add(Choices.profanity()) : choices.remove(Choices.profanity());
 
   /// used when fancy terminal stats are displayed.
   static int get numProcesses => activeProcesses;
 
   /// used when fancy terminal stats are displayed.
-  static int get activeProcesses => (_settings[Settings.upgradesOwned] as List<String>).length + 1;
+  static int get activeProcesses => (_settings[Settings.upgradesOwned] as Set<String>).length + 1;
 
   /// player's position in dialogue.
   static int line = -1;
@@ -169,12 +161,12 @@ abstract class Data {
   // void load() {}
 
   /// a [List] containing today's dialogue.
-  static List<Dialogue> dialogueToday = [];
+  static Convo dialogueToday = [];
 
   /// updates [dialogueToday] based on various stuff (most notably [day]).
   ///
   /// [dialogueToday] is returned by this function as well.
-  static List<Dialogue> getDialogueToday() {
+  static Convo getDialogueToday() {
     switch (_settings[Settings.day]) {
       case 0:
         dialogueToday = [
