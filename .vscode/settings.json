@@ -13,6 +13,7 @@
         ".metadata": true,
         ".packages": true,
         "*.iml": true,
+        "lib/generated_plugin_registrant.dart": true,
         "pubspec.lock": true
     }
 }

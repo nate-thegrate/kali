@@ -25,12 +25,6 @@ abstract class _CompanyName {
     'twitch',
   ];
   static const List<String> _spicyWords = [
-    'onlyfans',
-    'only fans',
-    'xvideos',
-    'x videos',
-    'bangbros',
-    'bang bros',
     'porn',
     'penis',
     'dick',
@@ -38,7 +32,7 @@ abstract class _CompanyName {
     'vagin',
     'cunt',
     'tits',
-    'titties',
+    'titt',
     'boob',
     'nigg',
     'fag',
@@ -47,14 +41,13 @@ abstract class _CompanyName {
     'fuck',
     'damn',
     'jesus',
+    'shrek',
   ];
   static String name = '';
-  static bool get _tooManyChars => name.length > 25;
+  static bool get _tooManyChars => name.length > maxCompanyNameLength;
   static bool get _copyrightStrike => inList(_companies);
   static bool get _spicy => inList(_spicyWords);
-  static bool inList(List<String> list) {
-    return list.any((word) => name.toLowerCase().contains(word));
-  }
+  static bool inList(List<String> list) => list.any((word) => name.toLowerCase().contains(word));
 
   static String get flavorText => _tooManyChars
       ? 'maybe something more concise.'
@@ -70,14 +63,14 @@ abstract class _CompanyName {
   static String _shuffle(String string) => (string.split('')..shuffle()).join('');
   static List<String> get names => [
         rng.nextBool() ? 'Readr' : 'Readly',
-        Data.hueMatch(180)
-            ? 'Cyan Clan'
-            : Data.hueMatch(300)
-                ? 'Magentle'
-                : 'Preddict',
+        if (Data.hueMatch(180))
+          'Cyan Clan'
+        else if (Data.hueMatch(300))
+          'Magentlemen'
+        else
+          'Preddict',
         rng.nextBool() ? 'WeTube' : 'expoFeed',
-        Data.fuck('shitfuck', 'poop'),
-        _shuffle('asdfjkl;'),
+        rng.nextBool() ? 'poop' : _shuffle('asdfjkl;'),
       ];
   static void next() {
     i = (i + 1) % names.length;
@@ -89,7 +82,7 @@ abstract class _CompanyName {
   static const OutlineInputBorder inputBorder = OutlineInputBorder(
     borderSide: BorderSide(color: Colors.white38, width: 1),
   );
-  static TextEditingController controller = TextEditingController();
+  static final TextEditingController controller = TextEditingController();
 }
 
 class Startup extends StatefulWidget {
@@ -118,21 +111,19 @@ class _StartupState extends State<Startup> {
   bool showAllColors = false;
   void customizeColor() => setState(() => showAllColors = true);
   Function(double) update(String c) {
-    return (newVal) => setState(
-          () {
-            switch (c) {
-              case 'H':
-                Data.h = newVal;
-                break;
-              case 'S':
-                Data.s = newVal;
-                break;
-              case 'L':
-                Data.l = newVal;
-                break;
-            }
-          },
-        );
+    return (newVal) => setState(() {
+          switch (c) {
+            case 'H':
+              Data.h = newVal;
+              break;
+            case 'S':
+              Data.s = newVal;
+              break;
+            case 'L':
+              Data.l = newVal;
+              break;
+          }
+        });
   }
 
   bool over18 = false;
@@ -153,7 +144,7 @@ class _StartupState extends State<Startup> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const KaliText(
-                  'Hit this button if\nyou\'re at least 18 years old.',
+                  'Hit this button if you\'re\nat least 18 years old.',
                   white: true,
                 ),
                 const Buffer(2),
@@ -233,7 +224,7 @@ class _StartupState extends State<Startup> {
           ),
           const Buffer(.5),
           SizedBox(
-            height: max(context.buffer * 14 + 110, 290),
+            height: max(context.buffer * 14 + 111, 290),
             child: LightBox(
               child: Column(
                 children: [
@@ -291,7 +282,7 @@ class _StartupState extends State<Startup> {
                     child: SizedBox(
                       width: double.infinity,
                       child: KaliText(
-                        'Adult Language: ' + Data.fuck('fuck yeah', 'off'),
+                        'Adult Language: ' + fuck('fuck yeah', 'off'),
                         alignLeft: true,
                       ),
                     ),
@@ -382,6 +373,7 @@ class _StartupState extends State<Startup> {
                   : () {
                       Data.company = _CompanyName.name;
                       if (_CompanyName._spicy) Choices.spicyName.choose();
+                      Data.nextDay();
                       context.goto(Pages.terminal);
                     },
             ),

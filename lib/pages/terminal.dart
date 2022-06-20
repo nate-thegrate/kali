@@ -14,7 +14,7 @@ class FirstBoot {
     '/home/nate/kali/main_process/',
   ];
   final List<String> commands = ['cd kali/main_process/', 'sudo su', './kali'];
-  List<String> displayCommands = ['', '', ''];
+  final List<String> displayCommands = ['', '', ''];
 
   final String kaliArt = '\n'
       '                   ▙\n'

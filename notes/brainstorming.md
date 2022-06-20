@@ -57,6 +57,8 @@
         - "Always thought [companyName] was an interesting name"
     - "I think Kali chose that a little while ago."
 - Mario admits to Kali that he's bi, asks if he should stay Christian
+- After buying quantum simulator: Nate asks Kali if [he] knows what [his] purpose is, even though it should be pretty obvious
+- Kali is [not a great first choice](https://www.kali.org/docs/introduction/should-i-use-kali-linux/) for Linux beginners
 
 
 # Characters
@@ -116,7 +118,7 @@
 
 ### Hope
 - high karma
-- glowy "generate more responses" button -> purpose is "human well-being"
+- glowy "generate more responses" button -> purpose is "human well-being" (during convo right after getting quantum simulator)
 
 #### Final Boss Battle
 - Twitter lost its user base, is suing for copyright infringement

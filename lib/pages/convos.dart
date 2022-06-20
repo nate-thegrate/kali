@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:kali/assets/content.dart';
 
 import 'package:kali/assets/data.dart';
 import 'package:kali/assets/globals.dart';
@@ -7,12 +8,12 @@ import 'package:kali/assets/structs.dart';
 import 'package:kali/assets/widgets.dart';
 
 class ImageIndex {
-  int index;
+  final int index;
 
-  void cycle() => index = (index + 2) % 25;
+  ImageIndex operator +(int other) => ImageIndex((index + other) % 25);
 
   /// used for looping through TV static frames.
-  ImageIndex(this.index);
+  const ImageIndex(this.index);
 
   Widget get image => Image.asset(
         'lib/assets/images/static/$index.png',
@@ -29,8 +30,8 @@ class Static {
   bool running = false;
   bool abort = false;
   bool _topLayerVisible = true;
-  final ImageIndex _bottom = ImageIndex(0);
-  final ImageIndex _top = ImageIndex(1);
+  ImageIndex _bottom = const ImageIndex(0);
+  ImageIndex _top = const ImageIndex(1);
 
   Widget get image => Stack(
         children: [
@@ -43,11 +44,12 @@ class Static {
       );
 
   void animate(Function setState, String name) async {
+    // todo: try removing name
     running = true;
-    (_topLayerVisible) ? _bottom.cycle() : _top.cycle();
+    _topLayerVisible ? _bottom += 2 : _top += 2;
 
     await sleep(1 / 30);
-    if (abort || name != '') return;
+    if (abort || name.isNotEmpty) return;
     setState(() => _topLayerVisible = !_topLayerVisible);
 
     animate(setState, name);
@@ -108,7 +110,7 @@ class FancyStats {
 
   String get time {
     final DateTime now = DateTime.now();
-    List<String> goodFormat = [
+    final List<String> goodFormat = [
       for (final int val in [now.hour, now.minute, now.second]) '${val < 10 ? '0' : ''}$val'
     ];
 
@@ -279,9 +281,9 @@ class _ConvoScreenState extends State<ConvoScreen> {
   //   tick();
   // }
 
-  void Function() respond(List<Dialogue> response) => () {
+  void Function() respond(Convo response) => () {
         dialogue = const Dialogue.none(); // so we don't re-trigger the question
-        final List<Dialogue> subsequent = Data.dialogueToday
+        final Convo subsequent = Data.dialogueToday
             .sublist(Data.line + 1); // everything after the question in dialogueToday
         Data.dialogueToday = response + subsequent;
         Data.line = -1;
@@ -292,7 +294,6 @@ class _ConvoScreenState extends State<ConvoScreen> {
   void display() async {
     final Event? event = dialogue.event;
     if (event is Question) {
-      final Widget bufferBox = SizedBox(height: context.buffer);
       await showModalBottomSheet<void>(
         context: context,
         isDismissible: false,
@@ -306,7 +307,7 @@ class _ConvoScreenState extends State<ConvoScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  bufferBox,
+                  const Buffer(),
                   for (final response in event.options.entries)
                     ColorButton(
                       response.key,
@@ -314,32 +315,36 @@ class _ConvoScreenState extends State<ConvoScreen> {
                     ),
                   if (showAllOptions)
                     for (final response in event.additional.entries) ...[
-                      bufferBox,
+                      const Buffer(),
                       ColorButton(
                         response.key,
                         onPressed: respond(response.value),
                       )
                     ]
                   else if (event.additional.isNotEmpty) ...[
-                    bufferBox,
+                    const Buffer(),
                     ClearButton(
                       'generate other responses',
                       onPressed: () => setState(() => showAllOptions = true),
                     )
                   ],
-                  bufferBox,
+                  const Buffer(),
                 ],
               ),
             ),
           ),
         ),
       );
+    } else if (event is Choose) {
+      event.choice.choose();
+      for (final Content content in event.relevantContent) {
+        content.queueThis();
+      }
     } else if (event is NavigateTo) {
       static.stop();
       context.goto(event.navigateTo);
       return;
     } else if (event is ShutDown) {
-      Choices.no5thAmendmentRights.choose();
       exit(0);
     } else {
       if (Data.advance()) {
@@ -357,8 +362,8 @@ class _ConvoScreenState extends State<ConvoScreen> {
       for (final String snippet in text) {
         for (int i = 0; i < snippet.length; i++) {
           await sleep(Data.delay);
-          final bool shouldAddLineBreak =
-              thisLineText != '' && thisLineText.length + wordLengthAtIndex(i, snippet) > lineSize;
+          final bool shouldAddLineBreak = thisLineText.isNotEmpty &&
+              thisLineText.length + wordLengthAtIndex(i, snippet) > lineSize;
           if (shouldAddLineBreak) {
             assert(++lineBreaks <= 2);
             displayText += '\n';
@@ -377,8 +382,7 @@ class _ConvoScreenState extends State<ConvoScreen> {
     }
   }
 
-  /// if `snippet[i]` is the first letter of a word,
-  /// returns the length of the word.
+  /// if `snippet[i]` is the first letter of a word, returns the length of the word.
   int wordLengthAtIndex(int i, String snippet) {
     if (i > 0 && snippet[i - 1] != ' ') return 0;
 
