@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kali/assets/content.dart';
 
 import 'package:kali/assets/data.dart';
 import 'package:kali/assets/globals.dart';
@@ -10,71 +11,77 @@ typedef SaveData = Map<Settings, dynamic>;
 abstract class DataPreset {
   /// the data to be loaded if no save data is found (i.e. first boot)
   static final SaveData startup = {
-    Settings.day: 0,
+    Settings.day: -1,
     Settings.karma: 0.0,
-    Settings.page: Pages.startup(),
+    Settings.page: Pages.startup,
     Settings.companyName: '',
     Settings.dialogueDelay: 20,
     Settings.colorH: 0.0,
     Settings.colorS: 0.0,
     Settings.colorL: 0.0,
-    Settings.postQueue: <String>{},
-    Settings.convoQueue: <String>{},
+    Settings.postQueue: <Content>{},
+    Settings.convoQueue: <Content>{},
     Settings.upgradesOwned: <String>{},
     Settings.upgradesAvailable: <String>{},
     Settings.upgradesHidden: <String>{},
-    Settings.choices: <String>{},
+    Settings.choices: <Choices>{},
   };
 
   static final SaveData firstDialogue = {
     Settings.day: 0,
     Settings.karma: 0.0,
-    Settings.page: Pages.convos(),
+    Settings.page: Pages.convos,
     Settings.companyName: 'x' * 25,
     Settings.dialogueDelay: 15,
     Settings.colorH: rng.nextDouble() * 360,
     Settings.colorS: rng.nextDouble(),
     Settings.colorL: rng.nextDouble(),
-    Settings.postQueue: <String>{},
-    Settings.convoQueue: <String>{},
+    Settings.postQueue: <Content>{
+      const Content(tag: Posts.firstDayFiller, relevance: Relevance.top),
+    },
+    Settings.convoQueue: <Content>{
+      const Content(tag: Convos.firstConvo, relevance: Relevance.top),
+    },
     Settings.upgradesOwned: <String>{},
     Settings.upgradesAvailable: <String>{},
     Settings.upgradesHidden: <String>{},
-    Settings.choices: rng.nextBool() ? <String>{Choices.profanity()} : <String>{},
+    Settings.choices: rng.nextBool() ? <Choices>{Choices.profanity} : <Choices>{},
   };
 
   static final SaveData firstCuration = {
     Settings.day: 0,
     Settings.karma: 0.0,
-    Settings.page: Pages.curation(),
+    Settings.page: Pages.curation,
     Settings.companyName: 'x' * 25,
     Settings.dialogueDelay: 15,
     Settings.colorH: rng.nextDouble() * 360,
     Settings.colorS: rng.nextDouble(),
     Settings.colorL: rng.nextDouble(),
-    Settings.postQueue: <String>{},
-    Settings.convoQueue: <String>{},
+    Settings.postQueue: <Content>{
+      const Content(tag: Posts.firstDayFiller, relevance: Relevance.top),
+    },
+    Settings.convoQueue: <Content>{},
     Settings.upgradesOwned: <String>{},
     Settings.upgradesAvailable: <String>{},
     Settings.upgradesHidden: <String>{},
-    Settings.choices: rng.nextBool() ? <String>{Choices.profanity()} : <String>{},
+    Settings.choices: rng.nextBool() ? <Choices>{Choices.profanity} : <Choices>{},
   };
 
   static final SaveData firstUpgrade = {
     Settings.day: 0,
     Settings.karma: 0.0,
-    Settings.page: Pages.upgrades(),
+    Settings.page: Pages.upgrades,
     Settings.companyName: 'x' * 25,
     Settings.dialogueDelay: 15,
     Settings.colorH: rng.nextDouble() * 360,
     Settings.colorS: rng.nextDouble(),
     Settings.colorL: rng.nextDouble(),
-    Settings.postQueue: <String>{},
-    Settings.convoQueue: <String>{},
+    Settings.postQueue: <Content>{},
+    Settings.convoQueue: <Content>{},
     Settings.upgradesOwned: <String>{},
     Settings.upgradesAvailable: <String>{},
     Settings.upgradesHidden: <String>{},
-    Settings.choices: rng.nextBool() ? <String>{Choices.profanity()} : <String>{},
+    Settings.choices: rng.nextBool() ? <Choices>{Choices.profanity} : <Choices>{},
   };
 }
 
@@ -189,7 +196,7 @@ abstract class MyColors {
   static const _lime = MyColor(90, 1, 7 / 8);
   static const _green = MyColor(120, 1, .5);
   static const _turquoise = MyColor(160, 5 / 9, 6 / 9);
-  static const _lightTurquoise = MyColor(160, 4 / 9, 7 / 8);
+  static const _lightTurquoise = MyColor(160, 6 / 9, 8 / 9);
   static const _cyan = MyColor(180, 1, .5);
   static const _blue = MyColor(240, 1, 249 / 500);
   static const _kaliGray = MyColor(240, .5, 2 / 3);
@@ -249,13 +256,19 @@ typedef Convo = List<Dialogue>;
 /// now I don't have to write out this list every time.
 ///
 /// Conveniently, you can insert this into a [List] using an ellipsis `...`.
-const List<String> ellipsis = ['', '.', '', '.', '', '.'];
+const List<String> ellipsis = ['', '.', '.', '.'];
 
 /// data for out-of-the-ordinary stuff that happens.
 ///
 /// The event will be handled by whatever page it pops up in, based on the subclass.
 abstract class Event {
   const Event();
+}
+
+class Choose extends Event {
+  final Choices choice;
+  final List<Content> relevantContent;
+  const Choose(this.choice, {this.relevantContent = const []});
 }
 
 class NavigateTo extends Event {
@@ -585,7 +598,7 @@ class Mario extends User {
   static String get current {
     if (Data.day < 7) return _anime;
     if (Data.day == 7) return _supa;
-    if (Data.day >= 200 && Choices.graphicDesigner.wasChosen) return _drawing;
+    if (Data.day >= 200 && Choices.graphicDesigner.chosen) return _drawing;
     return _pixelArt;
   }
 
@@ -622,12 +635,18 @@ abstract class NPCs {
 class Post {
   final User user;
   final String title, body;
+  final List<Content> relevantContent;
 
   /// `true` if the body is empty. (yeah, no shit)
   bool get emptyBody => body.isEmpty;
 
   /// data for social media posts.
-  const Post({required this.user, required this.title, this.body = ''});
+  const Post({
+    required this.user,
+    required this.title,
+    this.body = '',
+    this.relevantContent = const [],
+  });
 }
 
 class PostPreview extends Post {
@@ -650,10 +669,10 @@ const List<Post> influentialPosts = [
   Post(
     user: notRegistered,
     title: 'Unemployment',
-    body: 'My dad\'s a UPS driver. We heard that self-driving cars '
-        'are probably gonna be a thing soon, so he might be out of a job soon.\n\n'
-        'And he may not be able to get another one, '
-        'especially if the "corona virus" thing in China makes its way here.',
+    body: 'Apparently there\'s a "corona virus" disease in China, '
+        'and self-driving cars might be an actual thing soon.\n\n'
+        'My dad\'s a UPS driver, '
+        'so I\'m kinda freaking out about either of those things happening.',
   ),
   Post(
     user: notRegistered,
@@ -705,8 +724,8 @@ enum Choices {
   ;
 
   String call() => name;
-  void choose() => Data.choices.add(this());
-  bool get wasChosen => Data.choices.contains(this());
+  void choose() => Data.choices.add(this);
+  bool get chosen => Data.choices.contains(this);
 }
 
 class Decisions {

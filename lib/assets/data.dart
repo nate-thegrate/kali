@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kali/assets/content.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:kali/assets/globals.dart';
@@ -13,36 +14,44 @@ abstract class Data {
   static final SaveData _settings = launchData;
 
   /// ```dart
-  /// pronouns['key1']['key2']
+  ///
+  /// pronouns[Choices.key1]['key2']
   /// ```
   /// `key1`: player's preferred pronoun (he, she, they, it)<br>
   /// `key2`: conjugation (he, him, his, he's)
-  static const Map<String, Map<String, String>> _pronouns = {
-    'he': {
+  static const Map<Choices, Map<String, String>> _pronouns = {
+    Choices.he: {
       'he': 'he',
       'him': 'him',
       'his': 'his',
       'he\'s': 'he\'s',
     },
-    'she': {
+    Choices.she: {
       'he': 'she',
       'him': 'her',
       'his': 'her',
       'he\'s': 'she\'s',
     },
-    'they': {
+    Choices.they: {
       'he': 'they',
       'him': 'they',
       'his': 'their',
       'he\'s': 'they\'re',
     },
-    'it': {
+    Choices.it: {
       'he': 'it',
       'him': 'it',
       'his': 'its',
       'he\'s': 'it\'s',
     },
   };
+
+  static Choices get kaliPronoun {
+    for (final choice in choices) {
+      if (_pronouns.keys.contains(choice)) return choice;
+    }
+    throw Exception('Kali\'s preferred pronoun wasn\'t found.');
+  }
 
   /// returns the player's preferred pronoun with the correct conjugation.
   /// ```dart
@@ -51,22 +60,22 @@ abstract class Data {
   /// ```
   static String he(String pronoun) {
     final String firstLetter = pronoun.substring(0, 1);
-    String preferred = '';
-    for (final pronoun in _pronouns.keys) {
-      if (choices.contains(pronoun)) {
-        preferred = pronoun;
-        break;
-      }
-    }
-    final String result = _pronouns[preferred]![pronoun.toLowerCase()]!;
+    final String result = _pronouns[kaliPronoun]![pronoun.toLowerCase()]!;
     if (firstLetter == firstLetter.toUpperCase()) {
       return result[0].toUpperCase() + result.substring(1);
     }
     return result;
   }
 
+  /// conjugate a verb based on the player's preferred pronoun.
+  /// ```dart
+  /// he('he') + ' ' + conjugate('wants', 'want');
+  /// ```
+  /// will be evaluated as "he wants" or "they want", depending on which pronoun the player chose.
+  static String conjugate(String he, String they) => (Choices.they.chosen) ? they : he;
+
   /// the page to load when the app launches.
-  static String get page => _settings[Settings.page];
+  static Pages get page => _settings[Settings.page];
 
   /// an int representing the day of the year.
   ///
@@ -75,7 +84,12 @@ abstract class Data {
   static int get day => _settings[Settings.day];
 
   /// advances to the next in-game day.
-  static void nextDay() => _settings[Settings.day]++;
+  static void nextDay() {
+    _settings[Settings.day]++;
+    for (final content in relevantContentToday[day]!) {
+      content.queueThis();
+    }
+  }
 
   /// a value invisible to the player,
   /// representing how ethically they've behaved so far.
@@ -125,19 +139,22 @@ abstract class Data {
   /// Only a select few can qualify for the `Cyan Clan`.
   static bool hueMatch(int hue) => (h - hue).abs() < 5 && s > 0.25;
 
-  /// a list of all the major decisions the player has made.
+  static Set<Content> get postQueue => _settings[Settings.postQueue];
+  static Set<Content> get convoQueue => _settings[Settings.convoQueue];
+
+  /// a set of all the major decisions the player has made.
   ///
   /// Exclusively contains the names of [Choices] elements.
-  static Set<String> get choices => _settings[Settings.choices];
+  static Set<Choices> get choices => _settings[Settings.choices];
 
   /// used during startup
   /// when the player decides whether to enable adult language.
   ///
   /// The [fuck] function is used everywhere else.
-  static bool get adultLanguage => Choices.profanity.wasChosen;
+  static bool get adultLanguage => Choices.profanity.chosen;
 
   static set adultLanguage(bool fuck) =>
-      fuck ? choices.add(Choices.profanity()) : choices.remove(Choices.profanity());
+      fuck ? choices.add(Choices.profanity) : choices.remove(Choices.profanity());
 
   /// used when fancy terminal stats are displayed.
   static int get numProcesses => activeProcesses;
@@ -148,7 +165,9 @@ abstract class Data {
   /// player's position in dialogue.
   static int line = -1;
 
-  /// increments [line]; returns `true` if dialogue is done.
+  /// increments [line].
+  ///
+  /// Returns `true` if dialogue is done.
   static bool advance() => ++line >= dialogueToday.length;
 
   /// the [Event] to execute based on the current situation.
@@ -166,227 +185,7 @@ abstract class Data {
   /// updates [dialogueToday] based on various stuff (most notably [day]).
   ///
   /// [dialogueToday] is returned by this function as well.
-  static Convo getDialogueToday() {
-    switch (_settings[Settings.day]) {
-      case 0:
-        dialogueToday = [
-          ...[
-            const Dialogue(notRegistered, ['All right, it looks good so far', ...ellipsis]),
-            const Dialogue(notRegistered, ['And you can understand my voice! ', 'Awesome!']),
-            const Dialogue(notRegistered, ['Okay, Kali, it\'s time for you to register a user.']),
-            Dialogue(
-              registrationInProgress,
-              fuck(
-                ['', '', '', '', '', '', 'Please,', ' please just fucking work', ...ellipsis],
-                ['', '', '', '', '', '', 'Okay, fingers crossed', ...ellipsis],
-              ),
-              event: const Registration(nate),
-            ),
-            const Dialogue(nate, ['']),
-            const Dialogue(nate, ['Ho ho! Look at that!']),
-            const Dialogue(nate, ['Get in here Tony, ', 'Kali\'s up and running!']),
-            const Dialogue(notRegistered, ['Oh cool, let\'s see it.']),
-            const Dialogue(notRegistered, ['Wow, does it put everything we say on that screen?']),
-            const Dialogue(nate, ['Sure does.']),
-            const Dialogue(nate, ['I thought it might be nice to show that it understands us.']),
-            Dialogue(nate, ['I set it up to show your $company profile pic when you talk, too!']),
-            const Dialogue(nate, ['You should be able to just tell Kali to register yourself.']),
-            const Dialogue(notRegistered, ['Cool—hey uh, Kali, you should register me now.']),
-            const Dialogue(
-              registrationInProgress,
-              ['', '', '', '', '', '', 'So I just type it in here?'],
-              event: Registration(tony),
-            ),
-            const Dialogue(tony, ['']),
-            const Dialogue(tony, ['Hey,', ' that\'s me!']),
-            const Dialogue(nate, ['Sweet!']),
-            const Dialogue(nate, [
-              'Given that this is my 23rd time trying to get Kali to work, '
-                  'it\'s nice to finally not have any problems.'
-            ]),
-            Dialogue(tony, [fuck('Damn.', 'Dang.')]),
-            const Dialogue(tony, ['But everything works now?']),
-            Dialogue(
-              nate,
-              ['Yeah, I think so! Kali should be able to run the $company database now.'],
-            ),
-            const Dialogue(nate, [
-              'It also has some social functionality. '
-                  'So if you ask Kali a question, it\'ll answer like a person would.'
-            ]),
-            Dialogue(tony, [fuck('Aw hell yeah!', 'Cool!'), ' Can we ask it something?']),
-            const Dialogue(nate, ['Sure.']),
-          ],
-          Dialogue(
-            tony,
-            ['All right', ...ellipsis, '  Hey Kali, what are you named after?'],
-            event: Question(
-              options: {
-                '[give the answer]': [
-                  const Dialogue(
-                    kali,
-                    ['I was named after the operating system I\'m running on.'],
-                  ),
-                  const Dialogue(nate, ['Yeah that\'s right!']),
-                  const Dialogue(
-                    nate,
-                    [
-                      'I installed the Kali Linux distro on this machine '
-                          'back when I was really into hacking,'
-                    ],
-                  ),
-                  // todo: talk about how Kali is not a great choice for beginners
-                  // https://www.kali.org/docs/introduction/should-i-use-kali-linux/
-                  Dialogue(nate, ['and I ended up using it to build the AI for $company.']),
-                  const Dialogue(
-                    nate,
-                    ['Apparently "Kali" is also the name of the Hindu doomsday goddess,'],
-                  ),
-                  const Dialogue(
-                    nate,
-                    [
-                      'and since AI might destroy the world at some point '
-                          'I thought it\'d be funny to use that name.'
-                    ],
-                  ),
-                  Dialogue(tony, [
-                    fuck(
-                      'The fuck is a "Linux distro"?',
-                      'Cool. But you lost me at "Linux distro".',
-                    )
-                  ]),
-                  const Dialogue(
-                    nate,
-                    [
-                      'Umm',
-                      ...ellipsis,
-                      ' it\'s kinda like Windows 11, but better,',
-                      ' ',
-                      'since you don\'t have to buy it from Microsoft.'
-                    ],
-                  ),
-                  const Dialogue(nate, ['And also since Windows 11 sucks.']),
-                  const Dialogue(nate, ['Anyway,', ' ', 'thanks for coming over, Tony.']),
-                  const Dialogue(
-                    nate,
-                    ['We can give Kali official introductions when all 3 of us are here.'],
-                  ),
-                  const Dialogue(tony, ['Sounds good.', ' ', 'See ya.']),
-                  const Dialogue(nate, [
-                    'So,',
-                    ' ',
-                    'Kali',
-                    ...ellipsis,
-                    ' not to repeat myself, but it\'s sooo nice to have you actually working.'
-                  ]),
-                  const Dialogue(nate, ['I think we\'re pretty much ready for launch now!']),
-                ]
-              },
-              additional: {
-                '[make a dad joke]': [
-                  const Dialogue(kali, ['I was named after George Washington.']),
-                  const Dialogue(tony, ['Um,', ' ', 'what?']),
-                  const Dialogue(kali, [
-                    'Washington lived in the 1700s, so there\'s no way my name was decided before his was.'
-                  ]),
-                  const Dialogue(kali, ['I was definitely named after him.']),
-                  const Dialogue(tony, ellipsis),
-                  const Dialogue(nate, ellipsis),
-                  const Dialogue(nate, ['This is kinda surreal.']),
-                  const Dialogue(
-                      nate, ['I put thousands of hours into training Kali\'s conversational AI.']),
-                  Dialogue(nate, [
-                    'I guess I just wasn\'t expecting its first words to be a ${fuck('stupid-ass', 'dumb')} joke.'
-                  ]),
-                ],
-                '[be mad at the question]': [
-                  const Dialogue(kali, ['Please don\'t patronize me with a question like this.']),
-                  const Dialogue(kali, [
-                    'If you want to know why Nate picked the name "Kali" you should just ask him.'
-                  ]),
-                  Dialogue(tony, [
-                    fuck('Well damn,', 'Wow,'),
-                    ' ',
-                    'Nate,',
-                    ' ',
-                    'you gave Kali some attitude!'
-                  ]),
-                  const Dialogue(nate, [
-                    'Yeah,',
-                    ' ',
-                    'like Kali said, this is our first time having a conversation.',
-                  ]),
-                  const Dialogue(
-                    nate,
-                    ['I definitely wasn\'t expecting that to happen.'],
-                  ),
-                ],
-                '[say nothing]': [
-                  const Dialogue(kali, ellipsis),
-                  const Dialogue(
-                    nate,
-                    ['Hey,', ' ', 'um,', ' ', 'Kali', ...ellipsis, ' can you understand us?'],
-                  ),
-                  const Dialogue(kali, ellipsis),
-                  Dialogue(nate, [fuck('GOD DAMNIT.', 'Well shoot.')]),
-                  Dialogue(nate, [
-                    '${fuck('I gotta fucking', 'I\'m gonna have to')} go through '
-                        'Kali\'s code again and figure out what\'s wrong this time.'
-                  ]),
-                  const Dialogue(tony, ['Cool, you do that. Hit me up when it\'s working.']),
-                  const Dialogue(nate, ['Will do.']),
-                  const Dialogue(
-                    nate,
-                    [
-                      'Sorry, Kali, ',
-                      'it looks like we\'re gonna have to pull the plug for a bit.'
-                    ],
-                    event: ShutDown(),
-                  ),
-                ],
-              },
-            ),
-          ),
-          Dialogue(nate, [
-            'The only thing we still need is to make sure you\'re '
-                'set up to manage the $company database.'
-          ]),
-          Dialogue(
-            nate,
-            [
-              'I made a cute little UI to watch you curate the $company feed each day,',
-              ' ',
-              'so let\'s pull that up.',
-            ],
-            event: const NavigateTo(Pages.curation),
-          ),
-          const Dialogue(nate, ['this shouldn\'t show up unless we\'re in the curation page.']),
-        ];
-        break;
-      case 1:
-        dialogueToday = [
-          const Dialogue(
-            notRegistered,
-            ['So you\'re like a robot who understands us?'],
-            event: Question(
-              options: {
-                '[yes]': [],
-                '[no]': [
-                  Dialogue(kali, ['No. I\'m not a robot.']),
-                  Dialogue(kali, [
-                    'I\'m actually just a person who\'s tapping buttons on a screen.',
-                  ]),
-                ],
-              },
-            ),
-          )
-        ];
-        break;
-      default:
-        dialogueToday = [const Dialogue.none()];
-    }
-    return dialogueToday;
-  }
+  static Convo getDialogueToday() => dialogueToday = Content.popConvo();
 
   /// a [List] containing today's posts.
   static List<PostPreview> postsToday = [];
@@ -404,50 +203,7 @@ abstract class Data {
   ///
   /// [postsToday] is returned by this function as well.
   static List<PostPreview> getPostsToday() {
-    final List<Post> posts;
-    switch (_settings[Settings.day]) {
-      case 0:
-        posts = [
-          const Post(
-            user: nate,
-            title: 'Expand me to read more!',
-            body: 'Once each day, we\'re going to pull up this screen '
-                'so we can see a summary of the posts you\'ve recommended '
-                'to users throughout the day.\n\n'
-                'The posts listed out on the left are what [your '
-                'background process] has identified as having '
-                'the potential for engagement. From there, '
-                'it\'s up to you (the main process) '
-                'to decide what all our daily users see.',
-          ),
-          Post(
-            user: nate,
-            title: 'This shows up on the left...',
-            body: 'But if it\'s swiped right, that means you '
-                'selected it to show up on the $company front page!\n\n'
-                'The selected posts can be dragged around '
-                'so the absolute best post is on top :)',
-          ),
-          const Post(user: nate, title: 'boring filler post'),
-          const Post(user: nate, title: 'boring filler post 2'),
-          const Post(user: nate, title: 'boring filler post 3'),
-          const Post(user: nate, title: 'boring filler post 4'),
-          const Post(user: nate, title: 'boring filler post 5'),
-          const Post(user: nate, title: 'boring filler post 6'),
-          const Post(user: nate, title: 'boring filler post 7'),
-          const Post(user: nate, title: 'boring filler post 8'),
-          const Post(
-            user: nate,
-            title: 'An abnormally awful post',
-            body: 'Aptly accompanied by an atrociously abhorrent addendum.',
-          ),
-        ];
-        break;
-      default:
-        posts = <Post>[];
-        break;
-    }
-    postsToday = [for (final post in posts) PostPreview(post)];
+    postsToday = [for (final Post post in Content.popPosts()) PostPreview(post)];
     return postsToday;
   }
 

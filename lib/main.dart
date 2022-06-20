@@ -21,7 +21,7 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
         title: 'Kali',
         theme: ThemeData(textTheme: GoogleFonts.firaCodeTextTheme(Theme.of(context).textTheme)),
-        initialRoute: Data.page,
+        initialRoute: Data.page(),
         routes: {
           Pages.convos(): (context) => const ConvoScreen(),
           Pages.curation(): (context) => const Curation(),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kali/assets/content.dart';
 
 import 'package:kali/assets/data.dart';
 import 'package:kali/assets/globals.dart';
@@ -267,7 +268,15 @@ class _CurationState extends State<Curation> {
                     padding: EdgeInsets.only(bottom: buffer * 2),
                     child: ColorButton(
                       'Finished',
-                      onPressed: () => context.goto(Pages.upgrades),
+                      onPressed: () {
+                        // todo: activate/boost relevant content
+                        for (final Post post in Data.top4) {
+                          for (final Content content in post.relevantContent) {
+                            content.queueThis();
+                          }
+                        }
+                        context.goto(Pages.upgrades);
+                      },
                     ),
                   )
                 : empty,

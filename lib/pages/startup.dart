@@ -47,9 +47,7 @@ abstract class _CompanyName {
   static bool get _tooManyChars => name.length > maxCompanyNameLength;
   static bool get _copyrightStrike => inList(_companies);
   static bool get _spicy => inList(_spicyWords);
-  static bool inList(List<String> list) {
-    return list.any((word) => name.toLowerCase().contains(word));
-  }
+  static bool inList(List<String> list) => list.any((word) => name.toLowerCase().contains(word));
 
   static String get flavorText => _tooManyChars
       ? 'maybe something more concise.'
@@ -65,14 +63,14 @@ abstract class _CompanyName {
   static String _shuffle(String string) => (string.split('')..shuffle()).join('');
   static List<String> get names => [
         rng.nextBool() ? 'Readr' : 'Readly',
-        Data.hueMatch(180)
-            ? 'Cyan Clan'
-            : Data.hueMatch(300)
-                ? 'Magentle'
-                : 'Preddict',
+        if (Data.hueMatch(180))
+          'Cyan Clan'
+        else if (Data.hueMatch(300))
+          'Magentlemen'
+        else
+          'Preddict',
         rng.nextBool() ? 'WeTube' : 'expoFeed',
-        fuck('shitfuck', 'poop'),
-        _shuffle('asdfjkl;'),
+        rng.nextBool() ? 'poop' : _shuffle('asdfjkl;'),
       ];
   static void next() {
     i = (i + 1) % names.length;
@@ -84,7 +82,7 @@ abstract class _CompanyName {
   static const OutlineInputBorder inputBorder = OutlineInputBorder(
     borderSide: BorderSide(color: Colors.white38, width: 1),
   );
-  static TextEditingController controller = TextEditingController();
+  static final TextEditingController controller = TextEditingController();
 }
 
 class Startup extends StatefulWidget {
@@ -113,21 +111,19 @@ class _StartupState extends State<Startup> {
   bool showAllColors = false;
   void customizeColor() => setState(() => showAllColors = true);
   Function(double) update(String c) {
-    return (newVal) => setState(
-          () {
-            switch (c) {
-              case 'H':
-                Data.h = newVal;
-                break;
-              case 'S':
-                Data.s = newVal;
-                break;
-              case 'L':
-                Data.l = newVal;
-                break;
-            }
-          },
-        );
+    return (newVal) => setState(() {
+          switch (c) {
+            case 'H':
+              Data.h = newVal;
+              break;
+            case 'S':
+              Data.s = newVal;
+              break;
+            case 'L':
+              Data.l = newVal;
+              break;
+          }
+        });
   }
 
   bool over18 = false;
@@ -377,6 +373,7 @@ class _StartupState extends State<Startup> {
                   : () {
                       Data.company = _CompanyName.name;
                       if (_CompanyName._spicy) Choices.spicyName.choose();
+                      Data.nextDay();
                       context.goto(Pages.terminal);
                     },
             ),
